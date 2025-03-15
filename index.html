@@ -98,6 +98,11 @@
             background-color: #d0d0d0;
         }
         
+        .ingredient.selected {
+            background-color: #006241;
+            color: white;
+        }
+        
         .cup-area {
             flex: 1;
             display: flex;
@@ -135,6 +140,7 @@
             margin-bottom: 10px;
             padding: 10px;
             transition: opacity 0.3s;
+            cursor: pointer;
         }
         
         .customer-avatar {
@@ -719,7 +725,7 @@
             // Clear cup contents when changing size
             const layers = cupElement.querySelectorAll('.layer:not(.cup-lid)');
             layers.forEach(layer => {
-                cupElement.removeChild(layer);
+                layer.remove(); // Fixed: using remove() instead of cupElement.removeChild(layer)
             });
         }
         
@@ -729,7 +735,7 @@
             if (type === 'base' || type === 'milk') {
                 const existingLayers = cupElement.querySelectorAll(`.layer-${type}`);
                 existingLayers.forEach(layer => {
-                    cupElement.removeChild(layer);
+                    layer.remove(); // Fixed: using remove() instead of cupElement.removeChild(layer)
                 });
             }
             
@@ -767,194 +773,3 @@
             // Remove highlight from all ingredients of this type
             document.querySelectorAll(`[data-type="${type}"]`).forEach(el => {
                 el.classList.remove('selected');
-            });
-            
-            // Add highlight to selected ingredient
-            const selectedEl = document.querySelector(`[data-type="${type}"][data-value="${value}"]`);
-            if (selectedEl) {
-                selectedEl.classList.add('selected');
-            }
-        }
-        
-        // Reset current drink
-        function resetDrink() {
-            // Clear current drink state
-            state.currentDrink = {
-                cup: '',
-                base: '',
-                milk: '',
-                flavors: [],
-                toppings: []
-            };
-            
-            // Reset visual cup
-            const layers = cupElement.querySelectorAll('.layer');
-            layers.forEach(layer => {
-                if (!layer.classList.contains('cup-lid')) {
-                    cupElement.removeChild(layer);
-                }
-            });
-            
-            // Reset cup size to default
-            cupElement.style.height = '160px';
-            
-            // Remove all selected highlights
-            document.querySelectorAll('.ingredient.selected').forEach(el => {
-                el.classList.remove('selected');
-            });
-        }
-        
-        // Select a customer
-        function selectCustomer(index) {
-            state.currentCustomerIndex = index;
-            resetDrink();
-            renderCustomers();
-        }
-        
-        // Update which ingredients are visible based on unlocked status
-        function updateVisibleIngredients() {
-            // Hide all ingredients first
-            document.querySelectorAll('.ingredient').forEach(el => {
-                el.style.display = 'none';
-            });
-            
-            // Show only unlocked ingredients
-            for (const category in state.unlockedIngredients) {
-                state.unlockedIngredients[category].forEach(ingredient => {
-                    const el = document.querySelector(`.ingredient[data-value="${ingredient}"]`);
-                    if (el) {
-                        el.style.display = 'inline-block';
-                    }
-                });
-            }
-            
-            // Cup sizes are always available
-            document.querySelectorAll('#cup-sizes .ingredient').forEach(el => {
-                el.style.display = 'inline-block';
-            });
-        }
-        
-        // Unlock new ingredients when advancing to the next round
-        function unlockNewIngredients() {
-            const allBases = ['Espresso', 'Cold Brew', 'Blonde Espresso', 'Decaf Espresso'];
-            const allMilks = ['Whole Milk', '2% Milk', 'Nonfat Milk', 'Almond Milk', 'Oat Milk', 'Coconut Milk', 'Soy Milk'];
-            const allFlavors = ['Vanilla', 'Caramel', 'Hazelnut', 'Mocha', 'White Mocha', 'Toffee Nut', 'Cinnamon Dolce', 'Peppermint'];
-            const allToppings = ['Whipped Cream', 'Caramel Drizzle', 'Chocolate Drizzle', 'Cinnamon Powder', 'Nutmeg', 'Vanilla Sweet Cream'];
-            
-            // Unlock new ingredients based on round number
-            switch(state.currentRound) {
-                case 2:
-                    if (!state.unlockedIngredients.bases.includes('Blonde Espresso')) {
-                        state.unlockedIngredients.bases.push('Blonde Espresso');
-                    }
-                    if (!state.unlockedIngredients.milks.includes('Almond Milk')) {
-                        state.unlockedIngredients.milks.push('Almond Milk');
-                    }
-                    break;
-                case 3:
-                    if (!state.unlockedIngredients.flavors.includes('Hazelnut')) {
-                        state.unlockedIngredients.flavors.push('Hazelnut');
-                    }
-                    if (!state.unlockedIngredients.toppings.includes('Chocolate Drizzle')) {
-                        state.unlockedIngredients.toppings.push('Chocolate Drizzle');
-                    }
-                    break;
-                case 4:
-                    if (!state.unlockedIngredients.bases.includes('Decaf Espresso')) {
-                        state.unlockedIngredients.bases.push('Decaf Espresso');
-                    }
-                    if (!state.unlockedIngredients.milks.includes('Oat Milk')) {
-                        state.unlockedIngredients.milks.push('Oat Milk');
-                    }
-                    break;
-                case 5:
-                    if (!state.unlockedIngredients.flavors.includes('White Mocha')) {
-                        state.unlockedIngredients.flavors.push('White Mocha');
-                    }
-                    if (!state.unlockedIngredients.flavors.includes('Toffee Nut')) {
-                        state.unlockedIngredients.flavors.push('Toffee Nut');
-                    }
-                    break;
-                case 6:
-                    if (!state.unlockedIngredients.milks.includes('Coconut Milk')) {
-                        state.unlockedIngredients.milks.push('Coconut Milk');
-                    }
-                    if (!state.unlockedIngredients.milks.includes('Soy Milk')) {
-                        state.unlockedIngredients.milks.push('Soy Milk');
-                    }
-                    break;
-                case 7:
-                    if (!state.unlockedIngredients.flavors.includes('Cinnamon Dolce')) {
-                        state.unlockedIngredients.flavors.push('Cinnamon Dolce');
-                    }
-                    if (!state.unlockedIngredients.toppings.includes('Cinnamon Powder')) {
-                        state.unlockedIngredients.toppings.push('Cinnamon Powder');
-                    }
-                    break;
-                case 8:
-                    if (!state.unlockedIngredients.flavors.includes('Peppermint')) {
-                        state.unlockedIngredients.flavors.push('Peppermint');
-                    }
-                    if (!state.unlockedIngredients.toppings.includes('Nutmeg')) {
-                        state.unlockedIngredients.toppings.push('Nutmeg');
-                    }
-                    if (!state.unlockedIngredients.toppings.includes('Vanilla Sweet Cream')) {
-                        state.unlockedIngredients.toppings.push('Vanilla Sweet Cream');
-                    }
-                    break;
-            }
-            
-            // Update visible ingredients
-            updateVisibleIngredients();
-            
-            // Create unlock message
-            let unlockMessage = '';
-            if (state.currentRound >= 2 && state.currentRound <= 8) {
-                unlockMessage = '<div class="unlock-message">New ingredients unlocked!</div>';
-            }
-            
-            return unlockMessage;
-        }
-        
-        // Start the next round
-        function startNextRound() {
-            // Increase round number
-            state.currentRound++;
-            state.roundComplete = false;
-            
-            // Increase complexity (caps at 5)
-            state.maxComplexity = Math.min(5, Math.floor(state.currentRound / 2) + 1);
-            
-            // Update round display
-            roundDisplay.textContent = state.currentRound;
-            
-            // Unlock new ingredients
-            const unlockMessage = unlockNewIngredients();
-            
-            // Generate new customers
-            generateCustomers();
-            renderCustomers();
-            resetDrink();
-            
-            // Display unlock message if there is one
-            if (unlockMessage) {
-                feedbackTitle.innerHTML = 'New Unlocks!';
-                feedbackMessage.innerHTML = `You've reached Round ${state.currentRound}.<br>${unlockMessage}`;
-                feedbackModal.style.display = 'flex';
-            }
-        }
-        
-        // Show round summary
-        function showRoundSummary() {
-            state.roundComplete = true;
-            
-            // Update summary text
-            roundSummary.textContent = `You completed ${state.correctOrders} out of 3 orders correctly.`;
-            
-            // Show round end modal
-            roundModal.style.display = 'flex';
-        }
-        
-        // Serve the current drink
-        function serveDrink() {
-            const currentCustomer = state.customers[
